@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منبه الصلوات الذكي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  /* الثيم الداكن (افتراضي) */
+  [data-theme="dark"] {
+    --bg-main: #1d1e22;
+    --card-bg: #2b2c31;
+    --card-border: #38393e;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a3bd;
+    --input-bg: #1d1e22;
+  }
+
+  /* الثيم الفاتح */
+  [data-theme="light"] {
+    --bg-main: #f0f2f5;
+    --card-bg: #ffffff;
+    --card-border: #e0e0e0;
+    --text-primary: #212121;
+    --text-secondary: #666666;
+    --input-bg: #f8f9fa;
+  }
+
+  :root {
+    --accent-coral: #ee5b5b;
+    --accent-yellow: #f8c26c;
+    --accent-teal: #4db6ac;
+    --ok-color: #66bb6a;
+
+    --color-fajr: #ffe082;
+    --color-dhuhr: #ffb74d;
+    --color-asr: #ff8a65;
+    --color-maghrib: #ba68c8;
+    --color-isha: #64b5f6;
+    --color-custom: #a0a3bd;
+    
+    --active-prayer-color: var(--color-custom);
+    --clock-time-color: var(--color-fajr);
+  }
+
+  * { box-sizing: border-box; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+  
+  body {
+    margin: 0;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 16px;
+    min-height: 100vh;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+  }
+
+  .theme-toggle-btn {
+    position: absolute;
+    top: -12px;
+    left: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-primary);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    z-index: 10;
+  }
+
+  .clock-face-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 28px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    margin-top: 28px;
+  }
+
+  .live-clock {
+    font-family: 'Space Mono', monospace;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--clock-time-color);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+
+  .live-date {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+
+  .location-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 10px;
+  }
+
+  .setup-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--card-border);
+    gap: 10px;
+  }
+
+  .row:last-of-type { border-bottom: none; }
+
+  label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  select, input[type=time] {
+    font-family: 'Space Mono', 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    outline: none;
+  }
+
+  select:focus, input[type=time]:focus {
+    border-color: var(--accent-coral);
+  }
+
+  .prayer-preview-box {
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .prayer-preview-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .prayer-preview-time {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .days-picker {
+    display: flex;
+    gap: 4px;
+    justify-content: space-between;
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  .day-btn {
+    flex: 1;
+    padding: 6px 0;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .day-btn.selected {
+    background: var(--accent-teal);
+    color: #fff;
+    border-color: var(--accent-teal);
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .primary-btn {
+    flex: 2;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--accent-coral);
+    color: #ffffff;
+  }
+
+  .test-btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--input-bg);
+    color: var(--accent-yellow);
+  }
+
+  .status-msg {
+    text-align: center;
+    font-size: 13px;
+    color: var(--ok-color);
+    margin-top: 10px;
+    min-height: 18px;
+  }
+
+  .alarms-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  .alarms-list-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .no-alarms-msg {
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-secondary);
+    padding: 14px 0;
+  }
+  
+  .alarm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    border-right: 5px solid var(--color-custom);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+  }
+
+  .alarm-item-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .alarm-time-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .alarm-sub-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  
+  .remove-btn {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--accent-coral);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  /* الشاشات التفاعلية */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-main);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 999;
+  }
+
+  .overlay.active { display: flex; }
+
+  .ring-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--active-prayer-color);
+  }
+
+  .task-box, .hadith-card {
+    background: var(--card-bg);
+    border: 2px solid var(--active-prayer-color);
+    border-radius: 20px;
+    padding: 24px;
+    width: 100%;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: none;
+  }
+
+  .problem-text {
+    font-family: 'Space Mono', 'IBM Plex Sans Arabic', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .target-word-badge {
+    display: inline-block;
+    background: var(--input-bg);
+    border: 1px solid var(--card-border);
+    color: var(--active-prayer-color);
+    padding: 6px 16px;
+    border-radius: 12px;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    letter-spacing: 2px;
+  }
+
+  .answer-input {
+    width: 100%;
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    outline: none;
+  }
+
+  .stop-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--accent-coral);
+    color: #fff;
+  }
+
+  .slots-row, .bank-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .slot {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 6px;
+    border-bottom: 2px solid var(--active-prayer-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Space Mono', 'IBM Plex Sans Arabic', monospace;
+    cursor: pointer;
+  }
+
+  .tile {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: 'Space Mono', 'IBM Plex Sans Arabic', monospace;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .tile.hidden { opacity: 0; pointer-events: none; }
+  .error-msg { color: var(--accent-coral); font-size: 13px; margin-bottom: 8px; min-height: 18px; font-weight: 600; }
+
+  /* تصميم شبكة تتبع المسار */
+  .path-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 16px auto;
+    width: 210px;
+    height: 210px;
+  }
+
+  .path-node {
+    background: var(--input-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .path-node.highlight {
+    background: var(--active-prayer-color);
+    border-color: var(--active-prayer-color);
+    transform: scale(1.05);
+  }
+
+  .path-node.selected-node {
+    background: var(--accent-teal);
+    border-color: var(--accent-teal);
+  }
+
+  .hadith-title {
+    color: var(--active-prayer-color);
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+
+  .hadith-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <button class="theme-toggle-btn" id="themeToggleBtn">☀️ Light Mode</button>
+
+  <div class="clock-face-card">
+    <div class="live-clock" id="liveClock">--:--:--</div>
+    <div class="live-date" id="liveDate">--</div>
+    <div class="location-status" id="locationStatus">جارٍ تحديد موقعك لضبط مواقيت الصلاة...</div>
+  </div>
+
+  <div class="setup-card">
+    <div class="row">
+      <label for="prayerSelect">اختيار الصلاة</label>
+      <select id="prayerSelect">
+        <option value="custom">وقت يدوي (بدون صلاة)</option>
+        <option value="Fajr">🌅 صلاة الفجر</option>
+        <option value="Dhuhr">☀️ صلاة الظهر</option>
+        <option value="Asr">🌤️ صلاة العصر</option>
+        <option value="Maghrib">🌅 صلاة المغرب</option>
+        <option value="Isha">🌙 صلاة العشاء</option>
+      </select>
+    </div>
+
+    <div class="prayer-preview-box" id="prayerPreviewBox" style="display: none;">
+      <div class="prayer-preview-info" id="prayerInfo">
+        <span class="prayer-icon" id="prayerIcon">🌅</span>
+        <span id="prayerNameText">صلاة الفجر</span>
+      </div>
+      <span class="prayer-preview-time" id="prayerTimeText">04:30</span>
+    </div>
+
+    <div class="row" id="manualTimeRow">
+      <label for="alarmTime">وقت المنبه</label>
+      <input type="time" id="alarmTime">
+    </div>
+
+    <div class="row" style="flex-direction: column; align-items: flex-start;">
+      <label for="repeatMode">نظام التكرار</label>
+      <select id="repeatMode" style="width: 100%; margin-top: 6px;">
+        <option value="today">اليوم فقط</option>
+        <option value="daily">كل يوم</option>
+        <option value="custom_days">أيام معينة</option>
+      </select>
+
+      <div class="days-picker" id="daysPicker" style="display: none;">
+        <button type="button" class="day-btn" data-day="0">أحد</button>
+        <button type="button" class="day-btn" data-day="1">إثنين</button>
+        <button type="button" class="day-btn" data-day="2">ثلاثاء</button>
+        <button type="button" class="day-btn" data-day="3">أربعاء</button>
+        <button type="button" class="day-btn" data-day="4">خميس</button>
+        <button type="button" class="day-btn" data-day="5">جمعة</button>
+        <button type="button" class="day-btn" data-day="6">سبت</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="enableTask">تفعيل مهمة عند الرنين؟</label>
+      <select id="enableTask">
+        <option value="no">لا (إيقاف عادي)</option>
+        <option value="yes">نعم (حل مهمة)</option>
+      </select>
+    </div>
+
+    <div id="taskOptionsGroup" style="display: none;">
+      <div class="row">
+        <label for="taskType">نوع المهمة</label>
+        <select id="taskType">
+          <option value="math">مسألة حسابية</option>
+          <option value="scramble">ترتيب الحروف</option>
+          <option value="sort">ترتيب الأرقام</option>
+          <option value="path">تتبع المسار</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="difficulty">مستوى الصعوبة</label>
+        <select id="difficulty">
+          <option value="easy">سهلة</option>
+          <option value="medium" selected>متوسطة</option>
+          <option value="hard">صعبة</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="primary-btn" id="setAlarmBtn">تفعيل المنبه</button>
+      <button class="test-btn" id="testAlarmBtn">تجربة المنبه 🔔</button>
+    </div>
+
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+
+  <div class="alarms-card">
+    <div class="alarms-list-title">🔔 منبهات مضبوطة</div>
+    <div class="no-alarms-msg" id="noAlarmsMsg">لا يوجد</div>
+    <div id="alarmsContainer"></div>
+  </div>
+
+</div>
+
+<div class="overlay" id="ringOverlay">
+  <div style="font-size: 50px; margin-bottom: 10px;" id="ringPrayerIcon">⏰</div>
+  <div class="ring-time" id="ringTime">--:--</div>
+  <div class="task-box">
+    <p id="taskInstruction" style="margin-bottom:12px; font-weight: 600;">المنبه يعمل الآن!</p>
+
+    <!-- منطقة الرياضيات -->
+    <div id="mathTaskArea" style="display:none;">
+      <p id="mathProblem" class="problem-text"></p>
+      <input type="number" id="mathAnswer" class="answer-input" placeholder="الإجابة">
+    </div>
+
+    <!-- منطقة ترتيب الحروف -->
+    <div id="scrambleTaskArea" style="display:none;">
+      <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 4px;">الكلمة المطلوبة:</div>
+      <div id="targetWordBadge" class="target-word-badge">---</div>
+      <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">اختر الحروف بترتيب صحيح:</div>
+      <div class="bank-row" id="bankRow"></div>
+      <div class="slots-row" id="slotsRow"></div>
+    </div>
+
+    <!-- منطقة الترتيب التصاعدي / التنازلي -->
+    <div id="sortTaskArea" style="display:none;">
+      <p id="sortInstruction" class="problem-text" style="font-size: 15px;"></p>
+      <div class="bank-row" id="sortBankRow"></div>
+      <div class="slots-row" id="sortSlotsRow"></div>
+    </div>
+
+    <!-- منطقة تتبع المسار -->
+    <div id="pathTaskArea" style="display:none;">
+      <p id="pathStatus" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">احفظ المسار...</p>
+      <div class="path-grid" id="pathGrid">
+        <div class="path-node" data-index="0"></div>
+        <div class="path-node" data-index="1"></div>
+        <div class="path-node" data-index="2"></div>
+        <div class="path-node" data-index="3"></div>
+        <div class="path-node" data-index="4"></div>
+        <div class="path-node" data-index="5"></div>
+        <div class="path-node" data-index="6"></div>
+        <div class="path-node" data-index="7"></div>
+        <div class="path-node" data-index="8"></div>
+      </div>
+      <button class="day-btn" id="replayPathBtn" style="width:100%; margin-bottom:10px; display:none;">إعادة عرض المسار 🔄</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="stop-btn" id="stopAlarmBtn">إيقاف المنبه</button>
+  </div>
+</div>
+
+<div class="overlay" id="hadithOverlay">
+  <div class="hadith-card">
+    <div class="hadith-title" id="hadithTitle">✨ حديث الشريف ✨</div>
+    <div class="hadith-text" id="hadithContent">--</div>
+    <button class="stop-btn" style="background: var(--active-prayer-color); color: #000;" id="closeHadithBtn">حسناً</button>
+  </div>
+</div>
+
+<script>
+  const PRAYER_DETAILS = {
+    Fajr: { time: "04:30", name: "صلاة الفجر", icon: "🌅", color: "var(--color-fajr)" },
+    Dhuhr: { time: "12:30", name: "صلاة الظهر", icon: "☀️", color: "var(--color-dhuhr)" },
+    Asr: { time: "15:45", name: "صلاة العصر", icon: "🌤️", color: "var(--color-asr)" },
+    Maghrib: { time: "18:15", name: "صلاة المغرب", icon: "🌅", color: "var(--color-maghrib)" },
+    Isha: { time: "19:45", name: "صلاة العشاء", icon: "🌙", color: "var(--color-isha)" }
+  };
+
+  const HADITHS_BY_PRAYER = {
+    Fajr: [
+      "قال رسول الله ﷺ: «مَن صَلَّى الصُّبْحَ فَهُوَ فِي ذِمَّةِ اللهِ».",
+      "قال رسول الله ﷺ: «رَكْعَتَا الْفَجْرِ خَيْرٌ مِنَ الدُّنْيَا وَمَا فِيهَا»."
+    ],
+    Dhuhr: [
+      "قال رسول الله ﷺ: «إنَّها ساعَةٌ تُفْتَحُ فيها أَبْوابُ السَّماءِ، وأُحِبُّ أنْ يَصْعَدَ لي فيها عَمَلٌ صالِحٌ»."
+    ],
+    Asr: [
+      "قال رسول الله ﷺ: «مَن تَرَكَ صَلاةَ العَصْرِ حَبِطَ عَمَلُهُ».",
+      "قال رسول الله ﷺ: «الَّذِي تَفُوتُهُ صَلَاةُ العَصْرِ، كَأَنَّمَا وُتِرَ أَهْلَهُ وَمَالَهُ»."
+    ],
+    Maghrib: [
+      "قال رسول الله ﷺ: «لا تَزَالُ أُمَّتِي بِخَيْرٍ مَا لَمْ يُؤَخِّرُوا المَغْرِبَ حَتَّى تَشْتَبِكَ النُّجُومُ»."
+    ],
+    Isha: [
+      "قال رسول الله ﷺ: «مَن صَلَّى العِشاءَ في جَماعَةٍ فَكأنَّما قامَ نِصْفَ اللَّيْلِ، ومَن صَلَّى الصُّبْحَ في جَماعَةٍ فَكأنَّما صَلَّى اللَّيْلَ كُلَّهُ»."
+    ],
+    custom: [
+      "قال رسول الله ﷺ: «إنَّ أَوَّلَ ما يُحاسَبُ به العَبْدُ يَوْمَ القِيامَةِ مِنْ عَمَلِهِ صَلاتُهُ، فَإِنْ صَلُحَتْ فَقَدْ أَفْلَحَ وَأَنْجَحَ».",
+      "سُئِلَ النبيُّ ﷺ: أيُّ العَمَلِ أحَبُّ إلى اللَّهِ؟ قالَ: «الصَّلاةُ على وقْتِها»."
+    ]
+  };
+
+  const WORD_LISTS = {
+    easy: ['شمس','قمر','بيت','قلم'],
+    medium: ['شجرة','مدرسة','سيارة','حديقة'],
+    hard: ['تكنولوجيا','استراتيجية','مسؤولية']
+  };
+
+  const DAY_LABELS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+
+  let alarms = [];
+  let alarmIdCounter = 1;
+  let activeAlarm = null;
+  let currentAnswer = null;
+  let audioCtx = null;
+  let alarmInterval = null;
+  let scrambleState = null;
+  let sortState = null;
+  let pathState = { sequence: [], userInput: [], isPlaying: false };
+  let selectedDays = [];
+
+  // النمط الفاتح والداكن
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    themeToggleBtn.textContent = newTheme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+  });
+
+  const prayerSelect = document.getElementById('prayerSelect');
+  const prayerPreviewBox = document.getElementById('prayerPreviewBox');
+  const prayerNameText = document.getElementById('prayerNameText');
+  const prayerIcon = document.getElementById('prayerIcon');
+  const prayerTimeText = document.getElementById('prayerTimeText');
+  const prayerInfo = document.getElementById('prayerInfo');
+  const manualTimeRow = document.getElementById('manualTimeRow');
+  const enableTask = document.getElementById('enableTask');
+  const taskOptionsGroup = document.getElementById('taskOptionsGroup');
+  const repeatMode = document.getElementById('repeatMode');
+  const daysPicker = document.getElementById('daysPicker');
+
+  prayerSelect.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val !== 'custom') {
+      const p = PRAYER_DETAILS[val];
+      prayerPreviewBox.style.display = 'flex';
+      manualTimeRow.style.display = 'none';
+      prayerNameText.textContent = p.name;
+      prayerIcon.textContent = p.icon;
+      prayerTimeText.textContent = formatTime12(p.time);
+      
+      prayerInfo.style.color = p.color;
+      prayerTimeText.style.color = p.color;
+      prayerPreviewBox.style.borderColor = p.color;
+    } else {
+      prayerPreviewBox.style.display = 'none';
+      manualTimeRow.style.display = 'flex';
+    }
+  });
+
+  repeatMode.addEventListener('change', (e) => {
+    daysPicker.style.display = e.target.value === 'custom_days' ? 'flex' : 'none';
+  });
+
+  document.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const day = parseInt(btn.dataset.day);
+      if (selectedDays.includes(day)) {
+        selectedDays = selectedDays.filter(d => d !== day);
+        btn.classList.remove('selected');
+      } else {
+        selectedDays.push(day);
+        btn.classList.add('selected');
+      }
+    });
+  });
+
+  enableTask.addEventListener('change', (e) => {
+    taskOptionsGroup.style.display = e.target.value === 'yes' ? 'block' : 'none';
+  });
+
+  function pad(n) { return n.toString().padStart(2, '0'); }
+
+  // تحويل الوقت من صيغة 24 ساعة (HH:MM) إلى صيغة 12 ساعة مع ص/م
+  function formatTime12(time24) {
+    if (!time24) return '';
+    const [hStr, mStr] = time24.split(':');
+    let h = parseInt(hStr, 10);
+    const period = h >= 12 ? 'م' : 'ص';
+    h = h % 12 || 12;
+    return `${pad(h)}:${mStr} ${period}`;
+  }
+
+  function timeToMinutes(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function updateClockColorByTime(now) {
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const fajrTime = timeToMinutes(PRAYER_DETAILS.Fajr.time);
+    const dhuhrTime = timeToMinutes(PRAYER_DETAILS.Dhuhr.time);
+    const asrTime = timeToMinutes(PRAYER_DETAILS.Asr.time);
+    const maghribTime = timeToMinutes(PRAYER_DETAILS.Maghrib.time);
+    const ishaTime = timeToMinutes(PRAYER_DETAILS.Isha.time);
+
+    let activeColor = PRAYER_DETAILS.Fajr.color;
+
+    if (currentMinutes >= fajrTime && currentMinutes < dhuhrTime) {
+      activeColor = PRAYER_DETAILS.Fajr.color;
+    } else if (currentMinutes >= dhuhrTime && currentMinutes < asrTime) {
+      activeColor = PRAYER_DETAILS.Dhuhr.color;
+    } else if (currentMinutes >= asrTime && currentMinutes < maghribTime) {
+      activeColor = PRAYER_DETAILS.Asr.color;
+    } else if (currentMinutes >= maghribTime && currentMinutes < ishaTime) {
+      activeColor = PRAYER_DETAILS.Maghrib.color;
+    } else {
+      activeColor = PRAYER_DETAILS.Isha.color;
+    }
+
+    document.documentElement.style.setProperty('--clock-time-color', activeColor);
+  }
+
+  function updateClock() {
+    const now = new Date();
+    let h = now.getHours();
+    const m = pad(now.getMinutes());
+    const s = pad(now.getSeconds());
+    const period = h >= 12 ? 'م' : 'ص';
+    h = h % 12 || 12;
+
+    document.getElementById('liveClock').textContent = `${pad(h)}:${m}:${s} ${period}`;
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('liveDate').textContent = now.toLocaleDateString('ar-EG', options);
+
+    updateClockColorByTime(now);
+
+    const currentHM = `${pad(now.getHours())}:${m}`;
+    const currentDay = now.getDay();
+
+    if (now.getSeconds() === 0) {
+      alarms.forEach(alarm => {
+        if (alarm.time === currentHM) {
+          if (alarm.repeat === 'today' || alarm.repeat === 'daily') {
+            triggerAlarm(alarm);
+          } else if (alarm.repeat === 'custom_days' && alarm.days.includes(currentDay)) {
+            triggerAlarm(alarm);
+          }
+        }
+      });
+    }
+  }
+  // تنظيف الوقت القادم من الـ API (بيجي أحياناً مع منطقة زمنية زي "04:30 (EEST)")
+  function cleanApiTime(t) {
+    return t.split(' ')[0];
+  }
+
+  // جلب مواقيت الصلاة الفعلية حسب موقع المستخدم
+  function fetchPrayerTimesByLocation() {
+    const locationStatus = document.getElementById('locationStatus');
+
+    if (!navigator.geolocation) {
+      locationStatus.textContent = 'المتصفح لا يدعم تحديد الموقع، سيتم استخدام مواقيت افتراضية';
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const now = new Date();
+          const dateStr = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()}`;
+          const url = `https://api.aladhan.com/v1/timings/${dateStr}?latitude=${latitude}&longitude=${longitude}&method=5`;
+          const res = await fetch(url);
+          const data = await res.json();
+
+          if (data && data.data && data.data.timings) {
+            const t = data.data.timings;
+            PRAYER_DETAILS.Fajr.time = cleanApiTime(t.Fajr);
+            PRAYER_DETAILS.Dhuhr.time = cleanApiTime(t.Dhuhr);
+            PRAYER_DETAILS.Asr.time = cleanApiTime(t.Asr);
+            PRAYER_DETAILS.Maghrib.time = cleanApiTime(t.Maghrib);
+            PRAYER_DETAILS.Isha.time = cleanApiTime(t.Isha);
+
+            locationStatus.textContent = 'تم ضبط مواقيت الصلاة حسب موقعك ✅';
+
+            // تحديث معاينة الوقت لو فيه صلاة مختارة حالياً
+            if (prayerSelect.value !== 'custom') {
+              prayerSelect.dispatchEvent(new Event('change'));
+            }
+          } else {
+            locationStatus.textContent = 'تعذر جلب المواقيت، سيتم استخدام مواقيت افتراضية';
+          }
+        } catch (err) {
+          locationStatus.textContent = 'تعذر جلب المواقيت، سيتم استخدام مواقيت افتراضية';
+        }
+      },
+      () => {
+        locationStatus.textContent = 'تعذر تحديد الموقع، سيتم استخدام مواقيت افتراضية';
+      }
+    );
+  }
+
+  fetchPrayerTimesByLocation();
+
+  setInterval(updateClock, 1000);
+  updateClock();
+  renderAlarms();
+
+  document.getElementById('setAlarmBtn').addEventListener('click', () => {
+    const pKey = prayerSelect.value;
+    let finalTime = pKey !== 'custom' ? PRAYER_DETAILS[pKey].time : document.getElementById('alarmTime').value;
+
+    if (!finalTime) {
+      document.getElementById('statusMsg').style.color = 'var(--accent-coral)';
+      document.getElementById('statusMsg').textContent = 'حدد الوقت أولاً';
+      return;
+    }
+
+    const rMode = repeatMode.value;
+    if (rMode === 'custom_days' && selectedDays.length === 0) {
+      document.getElementById('statusMsg').style.color = 'var(--accent-coral)';
+      document.getElementById('statusMsg').textContent = 'اختر يوماً واحدًا على الأقل';
+      return;
+    }
+
+    const pInfo = pKey !== 'custom' ? PRAYER_DETAILS[pKey] : { name: 'منبه يدوي', icon: '⏰', color: 'var(--color-custom)' };
+
+    const newAlarm = {
+      id: alarmIdCounter++,
+      prayerKey: pKey,
+      time: finalTime,
+      prayerName: pInfo.name,
+      prayerIcon: pInfo.icon,
+      prayerColor: pInfo.color,
+      repeat: rMode,
+      days: [...selectedDays],
+      hasTask: enableTask.value === 'yes',
+      taskType: document.getElementById('taskType').value,
+      difficulty: document.getElementById('difficulty').value
+    };
+
+    alarms.push(newAlarm);
+    renderAlarms();
+    const statusMsg = document.getElementById('statusMsg');
+    statusMsg.style.color = 'var(--ok-color)';
+    statusMsg.textContent = `تم ضبط المنبه على ${formatTime12(finalTime)}`;
+    setTimeout(() => {
+      statusMsg.textContent = '';
+    }, 1500);
+  });
+
+  document.getElementById('testAlarmBtn').addEventListener('click', () => {
+    const pKey = prayerSelect.value;
+    let finalTime = pKey !== 'custom' ? PRAYER_DETAILS[pKey].time : (document.getElementById('alarmTime').value || "12:00");
+    const pInfo = pKey !== 'custom' ? PRAYER_DETAILS[pKey] : { name: 'منبه يدوي', icon: '⏰', color: 'var(--color-custom)' };
+    
+    const testAlarm = {
+      id: 999,
+      prayerKey: pKey,
+      prayerName: pInfo.name,
+      prayerIcon: pInfo.icon,
+      prayerColor: pInfo.color,
+      time: finalTime,
+      repeat: 'today',
+      hasTask: enableTask.value === 'yes',
+      taskType: document.getElementById('taskType').value,
+      difficulty: document.getElementById('difficulty').value,
+      isTest: true
+    };
+    triggerAlarm(testAlarm);
+  });
+
+  function renderAlarms() {
+    const container = document.getElementById('alarmsContainer');
+    const noAlarmsMsg = document.getElementById('noAlarmsMsg');
+    container.innerHTML = '';
+
+    if (alarms.length === 0) {
+      noAlarmsMsg.style.display = 'block';
+      return;
+    }
+
+    noAlarmsMsg.style.display = 'none';
+
+    alarms.forEach(a => {
+      let repeatText = 'اليوم فقط';
+      if (a.repeat === 'daily') repeatText = 'كل يوم';
+      if (a.repeat === 'custom_days') repeatText = a.days.map(d => DAY_LABELS[d]).join('، ');
+
+      const div = document.createElement('div');
+      div.className = 'alarm-item';
+      div.style.borderRightColor = a.prayerColor;
+      div.innerHTML = `
+        <div>
+          <div class="alarm-item-title">
+            <span style="font-size: 16px;">${a.prayerIcon}</span>
+            <span class="alarm-time-text">${formatTime12(a.time)}</span>
+            <span style="font-size: 13px; font-weight: 600; color: ${a.prayerColor};">${a.prayerName}</span>
+          </div>
+          <div class="alarm-sub-text">${repeatText} ${a.hasTask ? '• مهمة' : ''}</div>
+        </div>
+        <button class="remove-btn" onclick="removeAlarm(${a.id})">حذف</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  window.removeAlarm = function(id) {
+    alarms = alarms.filter(a => a.id !== id);
+    renderAlarms();
+
+    const statusMsg = document.getElementById('statusMsg');
+    statusMsg.style.color = 'var(--ok-color)';
+    statusMsg.textContent = 'تم حذف المنبه';
+
+    setTimeout(() => {
+      statusMsg.textContent = '';
+    }, 1500);
+  };
+
+  function playSound() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 750;
+    gain.gain.value = 0.15;
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    setTimeout(() => osc.stop(), 200);
+  }
+
+  function triggerAlarm(alarm) {
+    activeAlarm = alarm;
+    
+    const pColor = alarm.prayerColor || 'var(--color-custom)';
+    document.documentElement.style.setProperty('--active-prayer-color', pColor);
+
+    document.getElementById('ringTime').textContent = formatTime12(alarm.time);
+    document.getElementById('ringPrayerIcon').textContent = alarm.prayerIcon || '⏰';
+    document.getElementById('errorMsg').textContent = '';
+    
+    document.getElementById('mathTaskArea').style.display = 'none';
+    document.getElementById('scrambleTaskArea').style.display = 'none';
+    document.getElementById('sortTaskArea').style.display = 'none';
+    document.getElementById('pathTaskArea').style.display = 'none';
+
+    if (alarm.hasTask) {
+      document.getElementById('taskInstruction').textContent = 'حل المهمة لإيقاف المنبه!';
+      if (alarm.taskType === 'math') setupMathTask(alarm.difficulty);
+      else if (alarm.taskType === 'scramble') setupScrambleTask(alarm.difficulty);
+      else if (alarm.taskType === 'sort') setupSortTask(alarm.difficulty);
+      else if (alarm.taskType === 'path') setupPathTask(alarm.difficulty);
+    } else {
+      document.getElementById('taskInstruction').textContent = 'اضغط لإيقاف المنبه';
+    }
+
+    document.getElementById('ringOverlay').classList.add('active');
+    playSound();
+    alarmInterval = setInterval(playSound, 600);
+  }
+
+  /* 1. مسألة حسابية */
+  function setupMathTask(diff) {
+    document.getElementById('mathTaskArea').style.display = 'block';
+    let max = diff === 'easy' ? 10 : diff === 'medium' ? 30 : 100;
+    let a = Math.floor(Math.random() * max) + 1;
+    let b = Math.floor(Math.random() * max) + 1;
+    currentAnswer = a + b;
+    document.getElementById('mathProblem').textContent = `${a} + ${b} = ?`;
+    document.getElementById('mathAnswer').value = '';
+  }
+
+  /* 2. ترتيب الحروف */
+  function setupScrambleTask(diff) {
+    document.getElementById('scrambleTaskArea').style.display = 'block';
+    const list = WORD_LISTS[diff] || WORD_LISTS.easy;
+    const word = list[Math.floor(Math.random() * list.length)];
+    currentAnswer = word;
+    
+    document.getElementById('targetWordBadge').textContent = word;
+    resetScrambleState(word);
+  }
+
+  function resetScrambleState(word) {
+    let shuffled = word.split('').sort(() => Math.random() - 0.5);
+    
+    scrambleState = {
+      word: word,
+      slots: new Array(word.length).fill(null),
+      bank: shuffled.map((char, id) => ({ char, id, placed: false }))
+    };
+    renderScramble();
+  }
+
+  function renderScramble() {
+    const slotsRow = document.getElementById('slotsRow');
+    const bankRow = document.getElementById('bankRow');
+    slotsRow.innerHTML = '';
+    bankRow.innerHTML = '';
+
+    scrambleState.slots.forEach((ch, idx) => {
+      const div = document.createElement('div');
+      div.className = 'slot';
+      div.textContent = ch || '';
+      div.onclick = () => {
+        if (ch) {
+          const tile = scrambleState.bank.find(t => t.placed && t.char === ch);
+          if (tile) tile.placed = false;
+          scrambleState.slots[idx] = null;
+          renderScramble();
+        }
+      };
+      slotsRow.appendChild(div);
+    });
+
+    scrambleState.bank.forEach(tile => {
+      const btn = document.createElement('button');
+      btn.className = `tile ${tile.placed ? 'hidden' : ''}`;
+      btn.textContent = tile.char;
+      btn.onclick = () => {
+        const emptyIdx = scrambleState.slots.findIndex(s => s === null);
+        if (emptyIdx !== -1) {
+          tile.placed = true;
+          scrambleState.slots[emptyIdx] = tile.char;
+          renderScramble();
+        }
+      };
+      bankRow.appendChild(btn);
+    });
+  }
+
+  /* 3. الترتيب التصاعدي / التنازلي */
+  function setupSortTask(diff) {
+    document.getElementById('sortTaskArea').style.display = 'block';
+    const count = diff === 'easy' ? 4 : diff === 'medium' ? 5 : 6;
+    const isAscending = Math.random() > 0.5;
+    
+    let nums = [];
+    while(nums.length < count) {
+      let r = Math.floor(Math.random() * 90) + 10;
+      if (!nums.includes(r)) nums.push(r);
+    }
+
+    let targetSorted = [...nums].sort((a, b) => isAscending ? a - b : b - a);
+
+    sortState = {
+      isAscending: isAscending,
+      target: targetSorted,
+      originalNums: nums,
+      slots: new Array(count).fill(null),
+      bank: nums.map((val, id) => ({ val, id, placed: false }))
+    };
+
+    document.getElementById('sortInstruction').textContent = isAscending ? "رتب الأرقام تصاعدياً (من الأصغر للأكبر):" : "رتب الأرقام تنازلياً (من الأكبر للأصغر):";
+    renderSort();
+  }
+
+  function resetSortState() {
+    sortState.slots = new Array(sortState.target.length).fill(null);
+    sortState.bank = sortState.originalNums.map((val, id) => ({ val, id, placed: false }));
+    renderSort();
+  }
+
+  function renderSort() {
+    const sortSlotsRow = document.getElementById('sortSlotsRow');
+    const sortBankRow = document.getElementById('sortBankRow');
+    sortSlotsRow.innerHTML = '';
+    sortBankRow.innerHTML = '';
+
+    sortState.slots.forEach((num, idx) => {
+      const div = document.createElement('div');
+      div.className = 'slot';
+      div.textContent = num !== null ? num : '';
+      div.onclick = () => {
+        if (num !== null) {
+          const tile = sortState.bank.find(t => t.placed && t.val === num);
+          if (tile) tile.placed = false;
+          sortState.slots[idx] = null;
+          renderSort();
+        }
+      };
+      sortSlotsRow.appendChild(div);
+    });
+
+    sortState.bank.forEach(tile => {
+      const btn = document.createElement('button');
+      btn.className = `tile ${tile.placed ? 'hidden' : ''}`;
+      btn.textContent = tile.val;
+      btn.onclick = () => {
+        const emptyIdx = sortState.slots.findIndex(s => s === null);
+        if (emptyIdx !== -1) {
+          tile.placed = true;
+          sortState.slots[emptyIdx] = tile.val;
+          renderSort();
+        }
+      };
+      sortBankRow.appendChild(btn);
+    });
+  }
+
+  /* 4. تتبع المسار */
+  function setupPathTask(diff) {
+    document.getElementById('pathTaskArea').style.display = 'block';
+    const length = diff === 'easy' ? 3 : diff === 'medium' ? 4 : 5;
+    
+    pathState.sequence = [];
+    pathState.userInput = [];
+    pathState.isPlaying = true;
+
+    for (let i = 0; i < length; i++) {
+      pathState.sequence.push(Math.floor(Math.random() * 9));
+    }
+
+    playPathSequence();
+  }
+
+  function playPathSequence() {
+    pathState.isPlaying = true;
+    pathState.userInput = [];
+    document.getElementById('pathStatus').textContent = 'احفظ المسار...';
+    document.getElementById('replayPathBtn').style.display = 'none';
+
+    const nodes = document.querySelectorAll('.path-node');
+    nodes.forEach(n => n.classList.remove('highlight', 'selected-node'));
+
+    pathState.sequence.forEach((nodeIndex, i) => {
+      setTimeout(() => {
+        nodes[nodeIndex].classList.add('highlight');
+        setTimeout(() => {
+          nodes[nodeIndex].classList.remove('highlight');
+          if (i === pathState.sequence.length - 1) {
+            pathState.isPlaying = false;
+            document.getElementById('pathStatus').textContent = 'أعد إدخال المسار الآن:';
+            document.getElementById('replayPathBtn').style.display = 'block';
+          }
+        }, 400);
+      }, i * 700);
+    });
+  }
+
+  document.getElementById('replayPathBtn').onclick = () => {
+    if (!pathState.isPlaying) playPathSequence();
+  };
+
+  document.querySelectorAll('.path-node').forEach(node => {
+    node.onclick = () => {
+      if (pathState.isPlaying) return;
+      
+      const index = parseInt(node.dataset.index);
+      pathState.userInput.push(index);
+      
+      node.classList.add('selected-node');
+      setTimeout(() => node.classList.remove('selected-node'), 200);
+
+      const currentStep = pathState.userInput.length - 1;
+      if (pathState.userInput[currentStep] !== pathState.sequence[currentStep]) {
+        document.getElementById('errorMsg').textContent = 'خطأ في المسار! حاول مجدداً';
+        playPathSequence();
+      } else if (pathState.userInput.length === pathState.sequence.length) {
+        stopAlarm();
+      }
+    };
+  });
+
+  /* إيقاف المنبه والتحقق من الإجابات */
+  document.getElementById('stopAlarmBtn').addEventListener('click', () => {
+    if (!activeAlarm || !activeAlarm.hasTask) {
+      stopAlarm();
+      return;
+    }
+
+    const type = activeAlarm.taskType;
+    let isCorrect = false;
+
+    if (type === 'math') {
+      const val = parseInt(document.getElementById('mathAnswer').value);
+      isCorrect = (val === currentAnswer);
+    } else if (type === 'scramble') {
+      const userWord = scrambleState.slots.join('');
+      isCorrect = (userWord === currentAnswer);
+    } else if (type === 'sort') {
+      isCorrect = sortState.slots.every((val, i) => val === sortState.target[i]);
+    }
+
+    if (isCorrect) {
+      stopAlarm();
+    } else {
+      document.getElementById('errorMsg').textContent = 'إجابة خاطئة! حاول مرة أخرى';
+      if (type === 'scramble') resetScrambleState(scrambleState.word);
+      if (type === 'sort') resetSortState();
+    }
+  });
+
+  function stopAlarm() {
+    clearInterval(alarmInterval);
+    document.getElementById('ringOverlay').classList.remove('active');
+
+    if (activeAlarm) {
+      showHadithModal(activeAlarm.prayerKey);
+      if (activeAlarm.isTest || activeAlarm.repeat === 'today') {
+        alarms = alarms.filter(a => a.id !== activeAlarm.id);
+        renderAlarms();
+      }
+    }
+    activeAlarm = null;
+  }
+
+  function showHadithModal(prayerKey) {
+    const list = HADITHS_BY_PRAYER[prayerKey] || HADITHS_BY_PRAYER.custom;
+    const randomHadith = list[Math.floor(Math.random() * list.length)];
+    
+    document.getElementById('hadithContent').textContent = randomHadith;
+    document.getElementById('hadithOverlay').classList.add('active');
+  }
+
+  document.getElementById('closeHadithBtn').addEventListener('click', () => {
+    document.getElementById('hadithOverlay').classList.remove('active');
+  });
+</script>
+</body>
+</html>
